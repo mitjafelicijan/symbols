@@ -74,9 +74,9 @@
       
       .preview {
         position: fixed;
-        right: 3em;
+        right: 2em;
         top: 10em;
-        width: 11em;
+        width: 12em;
         background: #eee;
         padding: 2em;
         border-radius: var(--radius);
@@ -85,7 +85,7 @@
       .preview .char { color: blue; font-size: 600%; margin-bottom: 0.2em; }
       .preview table { color: #888; width: 100%; }
       .preview table .code { font-weight: bold; }
-      .preview table td:first-child { width: 50%; }
+      .preview table td:first-child { width: 65%; }
       .preview table td { border-bottom: 1px solid #ddd; padding: 0.5em 0; }
       .preview table tr:last-child td { border: 0; }
     </style>
@@ -110,8 +110,8 @@
       <div class="char"></div>
       <table cellspacing="0">
         <tr><td>Unicode</td><td class="code unicode"></td></tr>
-        <tr><td>UTF-8</td><td class="code utf8"></td></tr>
-        <tr><td>HTML</td><td class="code html"></td></tr>
+        <tr><td>Hexadecimal</td><td class="code hex"></td></tr>
+        <tr><td>HTML entity</td><td class="code html"></td></tr>
       </table>
     </section>
   
@@ -159,7 +159,7 @@
             preview_element.style.display = "block";
             preview_element.querySelector(".char").innerText = char;
             preview_element.querySelector(".unicode").innerText = unicode;
-            preview_element.querySelector(".utf8").innerText = utf8_hex;
+            preview_element.querySelector(".hex").innerText = utf8_hex;
             preview_element.querySelector(".html").innerText = html_entity;
           });
           
