@@ -5,162 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Symbol explorer</title>
-
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
     <style>
-      :root {
-        --radius: 6px;
-      }
-    
-      html, body {
-        font-family: arial, sans-serif;
-        padding: 1em;
-      }
-
-      .wrapper {
-        margin: auto;
-        max-width: 1000px;
-      }
-      
-      /******* Header with buttons */
-
-      header {
-        padding-bottom: 4em;
-      }
-
-      header nav {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      header .title {
-        font-size: large;
-        text-align: center;
-        font-weight: 600;
-        color: blue;
-        font-style: italic;
-      }
-
-      header nav .page-number {
-        color: #aaa;
-        text-align: center;
-        font-size: small;
-      }
-      
-      header nav button {
-        border: 0;
-        background: #eee;
-        padding: 0.8em 1.5em;
-        cursor: pointer;
-        border-radius: var(--radius);
-        font-size: large;
-      }
-      header nav button:hover { background: #ddd; }
-
-      /******* List of symbols */
-      
-      .list {
-        display: grid;
-        gap: 1em;
-        grid-template-columns: repeat(12, 1fr);
-      }
-
-      .list div { min-height: 1.4em; padding: 0.2em; text-align: center; display: flex; flex-direction: column; }
-      .list div:hover { background: #eee; cursor: pointer; border-radius: var(--radius); }
-      .list div .char { color: blue; font-size: 200%; flex-grow: 1; }
-      .list div .code { color: #bbb; font-size: small; }
-
-      /******* Preview of symbols */
-      
-      .preview {
-        position: fixed;
-        right: 2em;
-        top: 10em;
-        width: 13em;
-        background: #eee;
-        padding: 2em;
-        border-radius: var(--radius);
-        display: none;
-      }
-      .preview .char { color: blue; font-size: 600%; margin-bottom: 0.2em; }
-      .preview table { color: #888; width: 100%; }
-      .preview table .code { font-weight: bold; }
-      .preview table td:first-child { width: 60%; }
-      .preview table td { border-bottom: 1px solid #ddd; padding: 0.5em 0; }
-      .preview table tr:last-child td { border: 0; }
+      .wrapper { max-width: 1400px; }
+      .text-blue { color: blue; }
     </style>
   </head>
   <body>
 
-    <header class="wrapper">
+    <main class="wrapper mx-auto flex gap-12">
+      <div class="flex-grow flex flex-col gap-20">
+        <header class="sticky bg-white bg-white py-10 top-0">
+          <nav class="flex justify-between items-center">
+            <button onclick="prev_page()" class="bg-gray-200 px-8 py-2 rounded hover:bg-gray-200">prev</button>
+            <div class="flex flex-rows gap-4 items-center">
+              <select class="page-selector rounded px-3 py-2 bg-gray-200"></select>
+            </div>
+            <button onclick="next_page()" class="bg-gray-200 px-8 py-2 rounded hover:bg-gray-200">next</button>
+          </nav>
+        </header>
+        <section class="list grid grid-cols-10 gap-4"></section>
+      </div>
+      <div class="w-72 relative">
+        <section class="preview bg-gray-100 p-8 flex flex-col gap-10 rounded sticky top-40 hidden">
+          <div class="char text-blue text-8xl block block"></div>
+          <table cellspacing="0" class="text-gray-600">
+            <tr><td class="text-gray-400 w-28">Unicode</td><td class="code unicode font-mono text-sm"></td></tr>
+            <tr><td class="text-gray-400 w-28">Hexadecimal</td><td class="code hex font-mono text-sm"></td></tr>
+            <tr><td class="text-gray-400 w-28">HTML entity</td><td class="code html font-mono text-sm"></td></tr>
+          </table>
+        </section>
+      </div>
+    </main>
 
-      <nav>
-        <button onclick="prev_page()">prev</button>
-        <div>
-          <div class="title">symbol explorer</div>
-          <div class="page-number">1</div>
-        </div>
-        <button onclick="next_page()">next</button>
-      </nav>
-    </header>
-
-    <section class="wrapper list"></section>
-
-    <section class="preview">
-      <div class="char"></div>
-      <table cellspacing="0">
-        <tr><td>Unicode</td><td class="code unicode"></td></tr>
-        <tr><td>Hexadecimal</td><td class="code hex"></td></tr>
-        <tr><td>HTML entity</td><td class="code html"></td></tr>
-      </table>
+    <section class="toast fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-700 text-white rounded-full px-5 py-2 hidden">
+      Character `<code class="font-mono text-sm font-semibold"></code>` copied to clipboard.
     </section>
-  
-    <template id="symbol-preview">
-      <div class="item">
-        <div class="char"></div>
-        <div class="code unicode"></div>
+
+    <template id="symbol-item">
+      <div class="item p-3 hover:bg-gray-200 rounded flex flex-col items-center gap-2 cursor-pointer">
+        <div class="char text-4xl flex-grow text-blue"></div>
+        <div class="code unicode text-xs text-gray-400"></div>
       </div>
     </template>
   
     <script>
+      // const max_pages = 256;
+      const max_pages = 96;
+      const per_page = 64*2;
+
+      let toast_element = null;
       let list_element = null;
       let preview_element = null;
-      let page_number_element = null;
-      const per_page = 12*12;
-      let page = 0;
+      let page_selector_element = null;
+      let current_page = 0;
       
       window.addEventListener("load", () => {
+        toast_element = document.querySelector(".toast");
         list_element = document.querySelector(".list");
         preview_element = document.querySelector(".preview");
-        page_number_element = document.querySelector(".page-number");
+        page_selector_element = document.querySelector(".page-selector");
         
+        gen_page_selector();
         gen_symbols();
       });
+
+      function gen_page_selector() {
+        for (let i=0; i<max_pages; ++i) {
+          const option = document.createElement("option");
+          option.value = i;
+          option.text = `page ${i+1}`;
+          page_selector_element.appendChild(option);
+        }
+
+        page_selector_element.addEventListener("change", evt => {
+          current_page = parseInt(evt.target.value, 10);
+          gen_symbols();
+        });
+      }
       
       function gen_symbols() {
         if (!list_element) return;
 
-        page_number_element.innerText = `page ${page+1}`;
         list_element.innerHTML = "";
-        
-        for (let i = per_page*page; i < per_page*(page+1); i++) {
+        for (let i = per_page*current_page; i < per_page*(current_page+1); i++) {
           const char = String.fromCharCode(i);
           const unicode = `\\u${i.toString(16).padStart(4, '0').toUpperCase()}`;
           const utf8 = new TextEncoder('utf-8').encode(char);
           const utf8_hex = Array.from(utf8).map(b => `\\x${b.toString(16).padStart(2, '0').toUpperCase()}`).join('');
           const html_entity = `&#${i};`;
 
-          const template = document.querySelector("#symbol-preview").content.cloneNode(true);
+          const template = document.querySelector("#symbol-item").content.cloneNode(true);
           const item = template.querySelector(".item");
           item.querySelector(".char").textContent = char;
           item.querySelector(".unicode").textContent = unicode;
           
-          item.addEventListener("click", () => {
-            preview_element.style.display = "block";
+          item.addEventListener("click", async() => {
             preview_element.querySelector(".char").innerText = char;
             preview_element.querySelector(".unicode").innerText = unicode;
             preview_element.querySelector(".hex").innerText = utf8_hex;
             preview_element.querySelector(".html").innerText = html_entity;
+            preview_element.classList.remove("hidden");
+
+            try {
+              toast_element.classList.remove("hidden");
+              toast_element.querySelector("code").innerText = char;
+              setTimeout(() => toast_element.classList.add("hidden"), 2000);
+            } catch (err) {
+              console.error("Failed to copy text: ", err);
+            }
           });
           
           list_element.appendChild(template);
@@ -168,13 +121,16 @@
       }
 
       function next_page() {
-        page++;
+        if (current_page + 1 >= max_pages) return;
+        current_page++;
+        page_selector_element.value = current_page;
         gen_symbols();
       }
       
       function prev_page() {
-        if (page < 1) return;
-        page--;
+        if (current_page < 1) return;
+        current_page--;
+        page_selector_element.value = current_page;
         gen_symbols();
       }
     </script>
