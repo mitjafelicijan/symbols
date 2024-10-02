@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Symbol explorer</title>
+
+    <style>
+      :root {
+        --radius: 6px;
+      }
+    
+      html, body {
+        font-family: arial, sans-serif;
+        padding: 1em;
+      }
+
+      .wrapper {
+        margin: auto;
+        max-width: 1000px;
+      }
+      
+      /******* Header with buttons */
+
+      header {
+        padding-bottom: 4em;
+      }
+
+      header nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      header .title {
+        font-size: large;
+        text-align: center;
+        font-weight: 600;
+        color: blue;
+        font-style: italic;
+      }
+
+      header nav .page-number {
+        color: #aaa;
+        text-align: center;
+        font-size: small;
+      }
+      
+      header nav button {
+        border: 0;
+        background: #eee;
+        padding: 0.8em 1.5em;
+        cursor: pointer;
+        border-radius: var(--radius);
+        font-size: large;
+      }
+      header nav button:hover { background: #ddd; }
+
+      /******* List of symbols */
+      
+      .list {
+        display: grid;
+        gap: 1em;
+        grid-template-columns: repeat(12, 1fr);
+      }
+
+      .list div { padding: 0.2em; text-align: center; display: flex; flex-direction: column; }
+      .list div:hover { background: #eee; cursor: pointer; border-radius: var(--radius); }
+      .list div .char { color: blue; font-size: 200%; flex-grow: 1; }
+      .list div .code { color: #bbb; font-size: small; }
+
+      /******* Preview of symbols */
+      
+      .preview {
+        position: fixed;
+        right: 3em;
+        top: 10em;
+        width: 11em;
+        background: #eee;
+        padding: 2em;
+        border-radius: var(--radius);
+        display: none;
+      }
+      .preview .char { color: blue; font-size: 600%; margin-bottom: 0.2em; }
+      .preview table { color: #888; width: 100%; }
+      .preview table .code { font-weight: bold; }
+      .preview table td:first-child { width: 50%; }
+      .preview table td { border-bottom: 1px solid #ddd; padding: 0.5em 0; }
+      .preview table tr:last-child td { border: 0; }
+    </style>
+  </head>
+  <body>
+
+    <header class="wrapper">
+
+      <nav>
+        <button onclick="prev_page()">prev</button>
+        <div>
+          <div class="title">symbol explorer</div>
+          <div class="page-number">1</div>
+        </div>
+        <button onclick="next_page()">next</button>
+      </nav>
+    </header>
+
+    <section class="wrapper list"></section>
+
+    <section class="preview">
+      <div class="char"></div>
+      <table cellspacing="0">
+        <tr><td>Unicode</td><td class="code unicode"></td></tr>
+        <tr><td>UTF-8</td><td class="code utf8"></td></tr>
+        <tr><td>HTML</td><td class="code html"></td></tr>
+      </table>
+    </section>
+  
+    <template id="symbol-preview">
+      <div class="item">
+        <div class="char"></div>
+        <div class="code unicode"></div>
+      </div>
+    </template>
+  
+    <script>
+      let list_element = null;
+      let preview_element = null;
+      let page_number_element = null;
+      const per_page = 12*12;
+      let page = 0;
+      
+      window.addEventListener("load", () => {
+        list_element = document.querySelector(".list");
+        preview_element = document.querySelector(".preview");
+        page_number_element = document.querySelector(".page-number");
+        
+        gen_symbols();
+      });
+      
+      function gen_symbols() {
+        if (!list_element) return;
+
+        page_number_element.innerText = `page ${page+1}`;
+        list_element.innerHTML = "";
+        
+        for (let i = per_page*page; i < per_page*(page+1); i++) {
+          const char = String.fromCharCode(i);
+          const unicode = `\\u${i.toString(16).padStart(4, '0').toUpperCase()}`;
+          const utf8 = new TextEncoder('utf-8').encode(char);
+          const utf8_hex = Array.from(utf8).map(b => `\\x${b.toString(16).padStart(2, '0').toUpperCase()}`).join('');
+          const html_entity = `&#${i};`;
+
+          const template = document.querySelector("#symbol-preview").content.cloneNode(true);
+          const item = template.querySelector(".item");
+          item.querySelector(".char").textContent = char;
+          item.querySelector(".unicode").textContent = unicode;
+          
+          item.addEventListener("click", () => {
+            preview_element.style.display = "block";
+            preview_element.querySelector(".char").innerText = char;
+            preview_element.querySelector(".unicode").innerText = unicode;
+            preview_element.querySelector(".utf8").innerText = utf8_hex;
+            preview_element.querySelector(".html").innerText = html_entity;
+          });
+          
+          list_element.appendChild(template);
+        }
+      }
+
+      function next_page() {
+        page++;
+        gen_symbols();
+      }
+      
+      function prev_page() {
+        if (page < 1) return;
+        page--;
+        gen_symbols();
+      }
+    </script>
+  </body>
+</html>
