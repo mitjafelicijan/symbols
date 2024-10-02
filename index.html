@@ -17,7 +17,7 @@
   <body>
 
     <main class="wrapper mx-auto flex gap-12">
-      <div class="flex-grow flex flex-col gap-20">
+      <div class="flex-grow flex flex-col gap-00">
         <header class="sticky bg-white bg-white py-10 top-0">
           <nav class="flex justify-between items-center">
             <button onclick="prev_page()" class="bg-gray-200 px-8 py-2 rounded hover:bg-gray-200">prev</button>
@@ -29,15 +29,17 @@
         </header>
         <section class="list grid grid-cols-10 gap-4"></section>
       </div>
-      <div class="w-72 relative">
-        <section class="preview bg-gray-100 p-8 flex flex-col gap-10 rounded sticky top-40 hidden">
-          <div class="char text-blue text-8xl block block"></div>
-          <table cellspacing="0" class="text-gray-600 text-sm">
-            <tr><td class="text-gray-400 w-28">Unicode</td><td class="code unicode font-mono"></td></tr>
-            <tr><td class="text-gray-400 w-28">Hexadecimal</td><td class="code hex font-mono"></td></tr>
-            <tr><td class="text-gray-400 w-28">HTML entity</td><td class="code html font-mono"></td></tr>
-          </table>
-        </section>
+      <div class="w-72 relative flex items-end">
+        <div class="sticky bottom-20 w-full flex flex-col gap-6">
+          <section class="preview bg-gray-100 p-8 flex flex-col gap-10 w-full rounded hidden">
+            <div class="char text-blue text-8xl block block"></div>
+            <table cellspacing="0" class="text-gray-600 text-sm">
+              <tr><td class="text-gray-400 w-28">Unicode</td><td class="code unicode font-mono"></td></tr>
+              <tr><td class="text-gray-400 w-28">Hexadecimal</td><td class="code hex font-mono"></td></tr>
+              <tr><td class="text-gray-400 w-28">HTML entity</td><td class="code html font-mono"></td></tr>
+            </table>
+          </section>
+        </div>
       </div>
     </main>
 
