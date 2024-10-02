@@ -9,6 +9,9 @@
     <style>
       .wrapper { max-width: 1400px; }
       .text-blue { color: blue; }
+      .toast { opacity: 0; }
+      .toast.show { opacity: 1; animation: fadeIn 0.2s; }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
   </head>
   <body>
@@ -38,8 +41,10 @@
       </div>
     </main>
 
-    <section class="toast fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-700 text-white rounded-full px-5 py-2 hidden">
-      Character `<code class="font-mono text-sm font-semibold"></code>` copied to clipboard.
+    <section class="toast fixed bottom-4 w-full flex justify-center hidden">
+      <div class="bg-gray-700 text-white rounded-full px-5 py-2">
+        Character `<code class="font-mono text-sm font-semibold"></code>` copied to clipboard.
+      </div>
     </section>
 
     <template id="symbol-item">
@@ -50,9 +55,9 @@
     </template>
   
     <script>
-      // const max_pages = 256;
       const max_pages = 96;
       const per_page = 64*2;
+      const toast_timeout = 2000;
 
       let toast_element = null;
       let list_element = null;
@@ -106,11 +111,15 @@
             preview_element.querySelector(".hex").innerText = utf8_hex;
             preview_element.querySelector(".html").innerText = html_entity;
             preview_element.classList.remove("hidden");
+            toast_element.classList.add("show");
 
             try {
               toast_element.classList.remove("hidden");
               toast_element.querySelector("code").innerText = char;
-              setTimeout(() => toast_element.classList.add("hidden"), 2000);
+              setTimeout(() => {
+                toast_element.classList.add("hidden");
+                toast_element.classList.remove("show");
+              }, toast_timeout);
             } catch (err) {
               console.error("Failed to copy text: ", err);
             }
